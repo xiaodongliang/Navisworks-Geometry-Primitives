@@ -81,7 +81,8 @@ namespace BasicPlugIn
         {
             triangle_v_count += 3;
 
-            // do your work  
+            // why the color are not correct?
+            
             Array array_v1 = (Array)(object)v1.color;
             float fVal_1 = (float)(array_v1.GetValue(1));
             float fVal_2 = (float)(array_v1.GetValue(2));
@@ -130,6 +131,8 @@ namespace BasicPlugIn
 
                     long fragsCount = fragsColl.Count;  
 
+                    //node.fragments includes fragments of all instances, while ModelItem.FragmentCount tells 
+                    //exact framgment count of one instance, so use ModelItem.FragmentCount. 
                     for (long fragindex = 1; fragindex <= oMI.Geometry.FragmentCount; fragindex++)
                     {
                         COMApi.InwOaFragment3 frag = fragsColl[fragindex];
@@ -139,6 +142,13 @@ namespace BasicPlugIn
                                  new CallbackGeomListener(verProp, myStringBuilder);
                          myStringBuilder.AppendLine("frag property:" + verProp.ToString());
 
+                         // the matrix of different instance is stores with the corresponding group of fragments. e.g.
+                         //fragment collections
+                         // fragment 1 - matrix 1 for instance 1
+                         // fragment 2 - matrix 2 for instance 2
+                         // fragment 3 - matrix 3 for instance 3
+
+                         //but how to know the index of the instance in fragment collection. i.e. which fragment is for instance 1?
                         COMApi.InwLTransform3f3 m = frag.GetLocalToWorldMatrix() as COMApi.InwLTransform3f3;
 
                         myStringBuilder.AppendLine("            matrix translation: {x: " + m.GetTranslation().data1
