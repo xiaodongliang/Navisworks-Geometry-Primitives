@@ -117,23 +117,40 @@ namespace BasicPlugIn
                 if (oMI.HasGeometry)
                 {
                     ModelItem oUniqueInstanceItem = oMI;
-                     
-                    myStringBuilder.AppendLine("item frags count:" + oMI.Geometry.FragmentCount);
 
-                    COMApi.InwOaNode node = ComBridge.ToInwOaPath(oUniqueInstanceItem).Nodes().Last();
-                    myStringBuilder.AppendLine("node frags count:" + node.Fragments().Count);
-
+                    //get fragment collection from COM API
+                    //the collection contains fragments of all instances
                     COMApi.InwOaPath path = ComBridge.ToInwOaPath(oUniqueInstanceItem);
                     COMApi.InwNodeFragsColl fragsColl = path.Fragments();
-                    myStringBuilder.AppendLine("path frags count:" + node.Fragments().Count);
-
+                    myStringBuilder.AppendLine("path frags count:" + path.Fragments().Count);
+                     
+                    //count of fragments of one instance
+                    long fragOfOneItem = oMI.Geometry.FragmentCount;
+                    myStringBuilder.AppendLine("item frags count:" + oMI.Geometry.FragmentCount);
+                    
+                    //double check model item by COM API. useless
+                    COMApi.InwOaNode node = ComBridge.ToInwOaPath(oUniqueInstanceItem).Nodes().Last();
+                    myStringBuilder.AppendLine("node frags count:" + node.Fragments().Count);
+                    
+                    //how many instances... This model item is just one instance
                     myStringBuilder.AppendLine("instance count:" + oMI.Instances.Count<ModelItem>());
 
-                    long fragsCount = fragsColl.Count;  
+                    //count of fragments of all instances
+                    long fragsCount = fragsColl.Count;
 
-                    //node.fragments includes fragments of all instances, while ModelItem.FragmentCount tells 
-                    //exact framgment count of one instance, so use ModelItem.FragmentCount. 
-                    for (long fragindex = 1; fragindex <= oMI.Geometry.FragmentCount; fragindex++)
+                    //get out the corresponding fragments of the specific instance
+                    //we need to know the index of the instance in the fragment collection.
+                    //it looks ModelItem.GetHashCode() can be helpful.
+                    //int indexOFTheInstance = oMI.Instances.TakeWhile(x => x.GetHashCode() == oMI.GetHashCode()).Count();
+
+                    int indexOFTheInstance = oMI.Instances.ToList<ModelItem>().FindIndex(x => x.GetHashCode() == oMI.GetHashCode());
+                    myStringBuilder.AppendLine("instance start index in fragment collection :" 
+                        + (indexOFTheInstance * fragOfOneItem + 1).ToString());
+
+                    //note: fragment is counted from 1, instead of 0
+                    for (long fragindex = indexOFTheInstance * fragOfOneItem + 1 ;
+                        fragindex <= (indexOFTheInstance +1) * fragOfOneItem;
+                        fragindex++)
                     {
                         COMApi.InwOaFragment3 frag = fragsColl[fragindex];
                         COMApi.nwEVertexProperty verProp = frag.VertexProps;
@@ -142,13 +159,6 @@ namespace BasicPlugIn
                                  new CallbackGeomListener(verProp, myStringBuilder);
                          myStringBuilder.AppendLine("frag property:" + verProp.ToString());
 
-                         // the matrix of different instance is stores with the corresponding group of fragments. e.g.
-                         //fragment collections
-                         // fragment 1 - matrix 1 for instance 1
-                         // fragment 2 - matrix 2 for instance 2
-                         // fragment 3 - matrix 3 for instance 3
-
-                         //but how to know the index of the instance in fragment collection. i.e. which fragment is for instance 1?
                         COMApi.InwLTransform3f3 m = frag.GetLocalToWorldMatrix() as COMApi.InwLTransform3f3;
 
                         myStringBuilder.AppendLine("            matrix translation: {x: " + m.GetTranslation().data1
