@@ -1,4 +1,4 @@
-﻿//------------------------------------------------------------------
+//------------------------------------------------------------------
 // NavisWorks Sample code
 //------------------------------------------------------------------
 
@@ -45,10 +45,9 @@ namespace BasicPlugIn
         private COMApi.nwEVertexProperty _verProp = COMApi.nwEVertexProperty.eNONE;
         public int line_v_count = 0, point_v_count = 0, snappoint_v_count = 0, triangle_v_count = 0;
         public StringBuilder _sb;
-        public CallbackGeomListener(COMApi.nwEVertexProperty verProp, StringBuilder sb)
+        public CallbackGeomListener(StringBuilder sb)
         {
-            _verProp = verProp;
-            _sb = sb;
+             _sb = sb;
         }
 
         public CallbackGeomListener(COMApi.nwEVertexProperty verProp)
@@ -62,17 +61,45 @@ namespace BasicPlugIn
         {
             line_v_count += 2;
             // do your work 
+            Array array_v1 = (Array)(object)v1.color;
+            float fVal_1 = (float)(array_v1.GetValue(1));
+            float fVal_2 = (float)(array_v1.GetValue(2));
+            float fVal_3 = (float)(array_v1.GetValue(3));
+
+            _sb.AppendLine("           line color : {r: " + fVal_1
+                                            + ",g: " + fVal_2
+                                            + ",b: " + fVal_3 + "}");
         } 
         public void Point(COMApi.InwSimpleVertex v1) 
         {
             // do your work  
             point_v_count += 1;
+            Array array_v1 = (Array)(object)v1.color;
+            float fVal_1 = (float)(array_v1.GetValue(1));
+            float fVal_2 = (float)(array_v1.GetValue(2));
+            float fVal_3 = (float)(array_v1.GetValue(3));
+
+            _sb.AppendLine("          point color : {r: " + fVal_1
+                                            + ",g: " + fVal_2
+                                            + ",b: " + fVal_3 + "}");
 
         }
         public void SnapPoint(COMApi.InwSimpleVertex v1) 
         {
             // do your work  
-            snappoint_v_count += 1; 
+            snappoint_v_count += 1;
+
+            // do your work  
+            // why the color are not correct?
+
+            Array array_v1 = (Array)(object)v1.color;
+            float fVal_1 = (float)(array_v1.GetValue(1));
+            float fVal_2 = (float)(array_v1.GetValue(2));
+            float fVal_3 = (float)(array_v1.GetValue(3));
+
+            _sb.AppendLine("         snap point color : {r: " + fVal_1
+                                            + ",g: " + fVal_2
+                                            + ",b: " + fVal_3 + "}");
         }
 
         public void Triangle(COMApi.InwSimpleVertex v1, 
@@ -81,16 +108,17 @@ namespace BasicPlugIn
         {
             triangle_v_count += 3;
 
+            // do your work  
             // why the color are not correct?
-            
+
             Array array_v1 = (Array)(object)v1.color;
             float fVal_1 = (float)(array_v1.GetValue(1));
             float fVal_2 = (float)(array_v1.GetValue(2));
             float fVal_3 = (float)(array_v1.GetValue(3));
 
-            _sb.AppendLine("            color : {r: " + fVal_1
+            _sb.AppendLine("           triangle color : {r: " + fVal_1
                                             + ",g: " + fVal_2
-                                            + ",b: " + fVal_3 +"}"); 
+                                            + ",b: " + fVal_3 + "}");
 
 
         }
@@ -156,7 +184,7 @@ namespace BasicPlugIn
                         COMApi.nwEVertexProperty verProp = frag.VertexProps;
 
                         CallbackGeomListener callbkListener =
-                                 new CallbackGeomListener(verProp, myStringBuilder);
+                                 new CallbackGeomListener(myStringBuilder);
                          myStringBuilder.AppendLine("frag property:" + verProp.ToString());
 
                         COMApi.InwLTransform3f3 m = frag.GetLocalToWorldMatrix() as COMApi.InwLTransform3f3;
